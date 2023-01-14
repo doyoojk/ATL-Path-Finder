@@ -95,7 +95,7 @@ If you want to see how **_visualize_graph.py_** is used, take a look at the clas
 > * If you're having problems (exploring too many nodes) with your Breadth first search implementation, one thing many students have found useful is to re-watch the Canvas videos for an optimization trick mentioned.
 > * Most 'NoneType object ...' errors are because the path you return is not completely connected (a pair of successive nodes in the path are not connected). Or because the path variable itself is empty.
 > * Adding unit tests to your code may cause your submission to fail. It is best to comment them out when you submit.
-> * The submissions will be graded by an autograder, and it will time out in 10 minutes. If you observe an abnormality, let us know on Ed.
+> * The submissions will be graded by an autograder, and it will time out in 30 minutes. If you observe an abnormality, let us know on Ed.
 > * You may have two submissions in a window of 30min
 > * Gradescope will only allow the imports we provide you. I.e. You will lose a submission if you submit something with any other imports
 
