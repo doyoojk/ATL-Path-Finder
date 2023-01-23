@@ -320,8 +320,52 @@ def bidirectional_ucs(graph, start, goal):
     """
 
     # TODO: finish this function!
-    raise NotImplementedError
+    #raise NotImplementedError 
+    if start == goal:
+        return []
+    frontier1 = PriorityQueue() #initialize start frontier
+    frontier2 = PriorityQueue() #initialize goal frontier
+    frontier1.append((0, start))
+    frontier2.append((0, goal))
+    explored1 = set()
+    explored2 = set()
+    path1 = {start: [start]} #dict to keep track of path
+    path2 = {goal: [goal]}
+    cost1 = {start: 0} #dict to keep track of cost
+    cost2 = {goal: 0}
+    while frontier1 and frontier2:
+        if frontier1.size() <= frontier2.size():
+            curr = frontier1.pop()
+            currCost = curr[0] 
+            curr = curr[1]
+            if curr not in explored1:
+                explored1.add(curr) #add curr state to explored
 
+
+                for i in sorted(graph.neighbors(curr), key=lambda x:graph.get_edge_weight(curr, x)):
+                    newCost = currCost + graph.get_edge_weight(curr, i) 
+                    if i in explored2:
+                        return path1[curr] + path2[i][::-1]
+                    if i not in cost1 or newCost < cost1[i]:
+                        cost1[i] = newCost
+                        frontier1.append((newCost, i))
+                        path1[i] = path1[curr] + [i]
+        else:
+            curr = frontier2.pop()
+            currCost = curr[0] 
+            curr = curr[1]
+            if curr not in explored2:
+                explored2.add(curr) #add curr state to explored
+
+                for i in sorted(graph.neighbors(curr), key=lambda x:graph.get_edge_weight(curr, x)):
+                    newCost = currCost + graph.get_edge_weight(curr, i) 
+                    if i in explored1: #terminating condition
+                        return path1[i] + path2[curr][::-1]
+                    if i not in cost2 or newCost < cost2[i]:
+                        cost2[i] = newCost
+                        frontier2.append((newCost, i))
+                        path2[i] = path2[curr] + [i]
+    return None
 
 def bidirectional_a_star(graph, start, goal,
                          heuristic=euclidean_dist_heuristic):
