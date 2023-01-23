@@ -33,6 +33,7 @@ class PriorityQueue(object):
         """Initialize a new Priority Queue."""
 
         self.queue = []
+        self.counter = 0
 
     def pop(self):
         """
@@ -43,7 +44,9 @@ class PriorityQueue(object):
         """
 
         # TODO: finish this function!
-        raise NotImplementedError
+        #raise NotImplementedError
+        (priority, count, data) = heapq.heappop(self.queue)
+        return (priority, data)
 
     def remove(self, node):
         """
@@ -77,7 +80,13 @@ class PriorityQueue(object):
         """
 
         # TODO: finish this function!
-        raise NotImplementedError
+        #raise NotImplementedError
+        self.counter += 1
+        priority = node[0]
+        data = node[1]
+        tmpNode = (priority, self.counter, data)
+        heapq.heappush(self.queue, tmpNode)
+
         
     def __contains__(self, key):
         """
@@ -147,7 +156,22 @@ def breadth_first_search(graph, start, goal):
     """
 
     # TODO: finish this function!
-    raise NotImplementedError
+    #raise NotImplementedError
+    if start == goal:
+        return []
+    frontier = [(start, [])] #initialize frontier
+    explored = set()
+    while frontier:
+        curr = frontier.pop(0)
+        explored.add(curr[0]) #add curr state to explored
+        for i in sorted(graph.neighbors(curr[0]), key=lambda x:x[0]):
+            if i == goal:
+                return [start] + curr[1] + [i]
+            if i not in explored:
+                frontier.append((i, curr[1] + [i]))
+                explored.add(i)
+
+    return None
 
 
 def uniform_cost_search(graph, start, goal):
@@ -166,7 +190,28 @@ def uniform_cost_search(graph, start, goal):
     """
 
     # TODO: finish this function!
-    raise NotImplementedError
+    #raise NotImplementedError
+    #node = (cost, node, path)
+    if start == goal:
+        return []
+    frontier = PriorityQueue() #initialize frontier
+    frontier.append((0, start))
+    explored = set()
+    path = {start:[start]}
+    cost = {start:0}
+    while frontier:
+        currCost, curr = frontier.pop()
+        explored.add(curr) #add curr state to explored
+        
+        if curr == goal:
+            return path[curr]
+        for i in sorted(graph.neighbors(curr), key=lambda x:x[0]):
+            newCost = currCost + graph.get_edge_weight(curr, i)
+            if i not in explored and i not in frontier and (i not in cost or newCost < cost[i]):
+                cost[i] = newCost
+                frontier.append((newCost, i))
+                path[i] = path[curr] + [i]
+    return None
 
 
 def null_heuristic(graph, v, goal):
@@ -309,7 +354,8 @@ def tridirectional_upgraded(graph, goals, heuristic=euclidean_dist_heuristic, la
 def return_your_name():
     """Return your name from this function"""
     # TODO: finish this function
-    raise NotImplementedError
+    #raise NotImplementedError
+    return "Jamie Kim"
 
 
 def compute_landmarks(graph):
