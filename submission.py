@@ -201,16 +201,15 @@ def uniform_cost_search(graph, start, goal):
     cost = {start: 0} #dict to keep track of cost
     while frontier:
         curr = frontier.pop()
-        currCost = curr[0]
+        currCost = curr[0] 
         curr = curr[1]
         if curr not in explored:
             explored.add(curr) #add curr state to explored
             
-            if curr == goal:
+            if curr == goal: #terminating condition
                 return path[curr]
             for i in sorted(graph.neighbors(curr), key=lambda x:graph.get_edge_weight(curr, x)):
-                d = graph.get_edge_weight(curr, i)
-                newCost = currCost + d 
+                newCost = currCost + graph.get_edge_weight(curr, i) 
                 if i not in cost or newCost < cost[i]:
                     cost[i] = newCost
                     frontier.append((newCost, i))
@@ -251,9 +250,12 @@ def euclidean_dist_heuristic(graph, v, goal):
 
     # TODO: finish this function!
     #raise NotImplementedError
-    v = graph.nodes[v]['pos']
-    goal = graph.nodes[goal]['pos']
-    return math.sqrt((v[0] - goal[0])**2 + (v[1] - goal[1])**2)
+    vNode = graph.nodes[v]['pos']
+    goalNode = graph.nodes[goal]['pos']
+    x1, y1 = vNode
+    x2, y2 = goalNode
+    d = math.sqrt((x1 - x2)**2 + (y1 - y2)**2)
+    return d
 
 
 def a_star(graph, start, goal, heuristic=euclidean_dist_heuristic):
@@ -283,21 +285,21 @@ def a_star(graph, start, goal, heuristic=euclidean_dist_heuristic):
     explored = set()
     path = {start: [start]}
     cost = {start: 0}
+    cost_pre = {start: 0} #keeps track of values before adding heuristic cost
     while frontier:
         curr = frontier.pop()
-        currCost = curr[0]
-        curr = curr[1]
+        curr = curr[1] #only need node
         if curr not in explored:
             explored.add(curr) #add curr state to explored
             
-            if curr == goal:
+            if curr == goal: #terminating condition
                 return path[curr]
             for i in sorted(graph.neighbors(curr), key = lambda x:graph.get_edge_weight(curr, x)):
-                d = graph.get_edge_weight(curr, i)
-                newCost = currCost + d + heuristic(graph, i, goal)
-                if i not in cost or newCost < cost[i]:
-                    cost[i] = newCost
-                    frontier.append((newCost, i))
+                newCost = cost_pre[curr] + graph.get_edge_weight(curr, i)
+                if i not in cost or newCost + heuristic(graph, i, goal) < cost[i]:
+                    cost_pre[i] = newCost
+                    cost[i] = newCost + heuristic(graph, i, goal)
+                    frontier.append((cost[i], i))
                     path[i] = path[curr] + [i]
     return None
 
