@@ -191,14 +191,14 @@ def uniform_cost_search(graph, start, goal):
 
     # TODO: finish this function!
     #raise NotImplementedError
-    #node = (cost, node, path)
+    #node = (cost, node)
     if start == goal:
         return []
     frontier = PriorityQueue() #initialize frontier
     frontier.append((0, start))
     explored = set()
-    path = {start: [start]}
-    cost = {start: 0}
+    path = {start: [start]} #dict to keep track of path
+    cost = {start: 0} #dict to keep track of cost
     while frontier:
         curr = frontier.pop()
         currCost = curr[0]
@@ -210,7 +210,7 @@ def uniform_cost_search(graph, start, goal):
                 return path[curr]
             for i in sorted(graph.neighbors(curr), key=lambda x:graph.get_edge_weight(curr, x)):
                 d = graph.get_edge_weight(curr, i)
-                newCost = currCost + d
+                newCost = currCost + d 
                 if i not in cost or newCost < cost[i]:
                     cost[i] = newCost
                     frontier.append((newCost, i))
@@ -250,7 +250,10 @@ def euclidean_dist_heuristic(graph, v, goal):
     """
 
     # TODO: finish this function!
-    raise NotImplementedError
+    #raise NotImplementedError
+    v = graph.nodes[v]['pos']
+    goal = graph.nodes[goal]['pos']
+    return math.sqrt((v[0] - goal[0])**2 + (v[1] - goal[1])**2)
 
 
 def a_star(graph, start, goal, heuristic=euclidean_dist_heuristic):
@@ -271,7 +274,32 @@ def a_star(graph, start, goal, heuristic=euclidean_dist_heuristic):
     """
 
     # TODO: finish this function!
-    raise NotImplementedError
+    #raise NotImplementedError
+
+    if start == goal:
+        return []
+    frontier = PriorityQueue() #initialize frontier
+    frontier.append((0, start))
+    explored = set()
+    path = {start: [start]}
+    cost = {start: 0}
+    while frontier:
+        curr = frontier.pop()
+        currCost = curr[0]
+        curr = curr[1]
+        if curr not in explored:
+            explored.add(curr) #add curr state to explored
+            
+            if curr == goal:
+                return path[curr]
+            for i in sorted(graph.neighbors(curr), key = lambda x:graph.get_edge_weight(curr, x)):
+                d = graph.get_edge_weight(curr, i)
+                newCost = currCost + d + heuristic(graph, i, goal)
+                if i not in cost or newCost < cost[i]:
+                    cost[i] = newCost
+                    frontier.append((newCost, i))
+                    path[i] = path[curr] + [i]
+    return None
 
 
 def bidirectional_ucs(graph, start, goal):
