@@ -197,20 +197,24 @@ def uniform_cost_search(graph, start, goal):
     frontier = PriorityQueue() #initialize frontier
     frontier.append((0, start))
     explored = set()
-    path = {start:[start]}
-    cost = {start:0}
+    path = {start: [start]}
+    cost = {start: 0}
     while frontier:
-        currCost, curr = frontier.pop()
-        explored.add(curr) #add curr state to explored
-        
-        if curr == goal:
-            return path[curr]
-        for i in sorted(graph.neighbors(curr), key=lambda x:x[0]):
-            newCost = currCost + graph.get_edge_weight(curr, i)
-            if i not in explored and i not in frontier and (i not in cost or newCost < cost[i]):
-                cost[i] = newCost
-                frontier.append((newCost, i))
-                path[i] = path[curr] + [i]
+        curr = frontier.pop()
+        currCost = curr[0]
+        curr = curr[1]
+        if curr not in explored:
+            explored.add(curr) #add curr state to explored
+            
+            if curr == goal:
+                return path[curr]
+            for i in sorted(graph.neighbors(curr), key=lambda x:graph.get_edge_weight(curr, x)):
+                d = graph.get_edge_weight(curr, i)
+                newCost = currCost + d
+                if i not in cost or newCost < cost[i]:
+                    cost[i] = newCost
+                    frontier.append((newCost, i))
+                    path[i] = path[curr] + [i]
     return None
 
 
