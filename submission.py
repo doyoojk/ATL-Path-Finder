@@ -319,7 +319,7 @@ def bidirectional_ucs(graph, start, goal):
         The best path as a list from the start and goal nodes (including both).
     """
 
-    # TODO: finish this function!
+    #TODO: finish this function!
     #raise NotImplementedError 
     if start == goal:
         return []
@@ -333,6 +333,7 @@ def bidirectional_ucs(graph, start, goal):
     path2 = {goal: [goal]}
     cost1 = {start: 0} #dict to keep track of cost
     cost2 = {goal: 0}
+    #minCost = float('inf')
     while frontier1 and frontier2:
         if frontier1.size() <= frontier2.size():
             curr = frontier1.pop()
@@ -341,15 +342,14 @@ def bidirectional_ucs(graph, start, goal):
             if curr not in explored1:
                 explored1.add(curr) #add curr state to explored
 
-
                 for i in sorted(graph.neighbors(curr), key=lambda x:graph.get_edge_weight(curr, x)):
                     newCost = currCost + graph.get_edge_weight(curr, i) 
-                    if i in explored2:
+                    if i in explored2: 
                         return path1[curr] + path2[i][::-1]
                     if i not in cost1 or newCost < cost1[i]:
                         cost1[i] = newCost
-                        frontier1.append((newCost, i))
                         path1[i] = path1[curr] + [i]
+                        frontier1.append((newCost, i))
         else:
             curr = frontier2.pop()
             currCost = curr[0] 
@@ -363,9 +363,10 @@ def bidirectional_ucs(graph, start, goal):
                         return path1[i] + path2[curr][::-1]
                     if i not in cost2 or newCost < cost2[i]:
                         cost2[i] = newCost
-                        frontier2.append((newCost, i))
                         path2[i] = path2[curr] + [i]
+                        frontier2.append((newCost, i))
     return None
+
 
 def bidirectional_a_star(graph, start, goal,
                          heuristic=euclidean_dist_heuristic):
@@ -386,7 +387,52 @@ def bidirectional_a_star(graph, start, goal,
     """
 
     # TODO: finish this function!
-    raise NotImplementedError
+    #raise NotImplementedError
+    if start == goal:
+        return []
+    frontier1 = PriorityQueue() #initialize start frontier
+    frontier2 = PriorityQueue() #initialize goal frontier
+    frontier1.append((0, start))
+    frontier2.append((0, goal))
+    explored1 = set()
+    explored2 = set()
+    path1 = {start: [start]} #dict to keep track of path
+    path2 = {goal: [goal]}
+    cost1 = {start: 0} #dict to keep track of cost
+    cost2 = {goal: 0}
+    cost1_pre = {start: 0} #dict to keep track of cost before adding heuristic
+    cost2_pre = {goal: 0}
+    while frontier1 and frontier2:
+        if frontier1.size() <= frontier2.size():
+            curr = frontier1.pop()
+            curr = curr[1]
+            if curr not in explored1:
+                explored1.add(curr) #add curr state to explored
+
+                for i in sorted(graph.neighbors(curr), key=lambda x:graph.get_edge_weight(curr, x)):
+                    newCost = cost1_pre[curr] + graph.get_edge_weight(curr, i) 
+                    if i in explored2:
+                        return path1[curr] + path2[i][::-1]
+                    if i not in cost1 or newCost + heuristic(graph, i, goal) < cost1[i]:
+                        cost1_pre[i] = newCost
+                        cost1[i] = newCost + heuristic(graph, i, goal)
+                        path1[i] = path1[curr] + [i]
+                        frontier1.append((cost1[i], i))
+        else:
+            curr = frontier2.pop()
+            curr = curr[1]
+            if curr not in explored2:
+                explored2.add(curr) #add curr state to explored
+
+                for i in sorted(graph.neighbors(curr), key=lambda x:graph.get_edge_weight(curr, x)):
+                    newCost = cost2_pre[curr] + graph.get_edge_weight(curr, i) 
+                    if i in explored1: #terminating condition
+                        return path1[i] + path2[curr][::-1]
+                    if i not in cost2 or newCost + heuristic(graph, i, start) < cost2[i]:
+                        cost2_pre[i] = newCost
+                        cost2[i] = newCost + heuristic(graph, i, start)
+                        path2[i] = path2[curr] + [i]
+                        frontier2.append((cost2[i], i))
 
 
 def tridirectional_search(graph, goals):
@@ -405,7 +451,6 @@ def tridirectional_search(graph, goals):
     """
     # TODO: finish this function
     raise NotImplementedError
-
 
 def tridirectional_upgraded(graph, goals, heuristic=euclidean_dist_heuristic, landmarks=None):
     """
