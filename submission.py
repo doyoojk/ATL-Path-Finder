@@ -294,7 +294,7 @@ def a_star(graph, start, goal, heuristic=euclidean_dist_heuristic):
             
             if curr == goal: #terminating condition
                 return path[curr]
-            for i in sorted(graph.neighbors(curr), key = lambda x:graph.get_edge_weight(curr, x)):
+            for i in sorted(graph.neighbors(curr), key = lambda x:graph.get_edge_weight(curr, x) + heuristic(graph, x, goal)):
                 newCost = cost_pre[curr] + graph.get_edge_weight(curr, i)
                 if i not in cost or newCost + heuristic(graph, i, goal) < cost[i]:
                     cost_pre[i] = newCost
@@ -333,19 +333,23 @@ def bidirectional_ucs(graph, start, goal):
     path2 = {goal: [goal]}
     cost1 = {start: 0} #dict to keep track of cost
     cost2 = {goal: 0}
-    #minCost = float('inf')
     while frontier1 and frontier2:
-        if frontier1.size() <= frontier2.size():
+        if (frontier1.size() < frontier2.size()) or frontier1.size() == 1:
             curr = frontier1.pop()
             currCost = curr[0] 
             curr = curr[1]
+            if curr == goal:
+                print("curr-goal")
+                return path1[curr]
+
+            if curr in explored2:
+                print("curr in explored2")
+                return path1[curr][:-1] + path2[curr][::-1]
+
             if curr not in explored1:
                 explored1.add(curr) #add curr state to explored
-
                 for i in sorted(graph.neighbors(curr), key=lambda x:graph.get_edge_weight(curr, x)):
                     newCost = currCost + graph.get_edge_weight(curr, i) 
-                    if i in explored2: 
-                        return path1[curr] + path2[i][::-1]
                     if i not in cost1 or newCost < cost1[i]:
                         cost1[i] = newCost
                         path1[i] = path1[curr] + [i]
@@ -354,13 +358,18 @@ def bidirectional_ucs(graph, start, goal):
             curr = frontier2.pop()
             currCost = curr[0] 
             curr = curr[1]
+            if curr == start:
+                print("curr-start")
+                return path2[curr][::-1]
+
+            if curr in explored1:
+                print("curr in explored1")
+                return path1[curr][:-1] + path2[curr][::-1]
+
             if curr not in explored2:
                 explored2.add(curr) #add curr state to explored
-
                 for i in sorted(graph.neighbors(curr), key=lambda x:graph.get_edge_weight(curr, x)):
-                    newCost = currCost + graph.get_edge_weight(curr, i) 
-                    if i in explored1: #terminating condition
-                        return path1[i] + path2[curr][::-1]
+                    newCost = currCost + graph.get_edge_weight(curr, i)
                     if i not in cost2 or newCost < cost2[i]:
                         cost2[i] = newCost
                         path2[i] = path2[curr] + [i]
@@ -369,7 +378,7 @@ def bidirectional_ucs(graph, start, goal):
 
 
 def bidirectional_a_star(graph, start, goal,
-                         heuristic=euclidean_dist_heuristic):
+                         heuristic=null_heuristic):
     """
     Exercise 2: Bidirectional A*.
 
@@ -403,16 +412,20 @@ def bidirectional_a_star(graph, start, goal,
     cost1_pre = {start: 0} #dict to keep track of cost before adding heuristic
     cost2_pre = {goal: 0}
     while frontier1 and frontier2:
-        if frontier1.size() <= frontier2.size():
+        if (frontier1.size() < frontier2.size()) or frontier1.size() == 1:
             curr = frontier1.pop()
             curr = curr[1]
+            if curr == goal:
+                return path1[curr]
+
+            if curr in explored2:
+                return path1[curr][:-1] + path2[curr][::-1]
+
             if curr not in explored1:
                 explored1.add(curr) #add curr state to explored
 
-                for i in sorted(graph.neighbors(curr), key=lambda x:graph.get_edge_weight(curr, x)):
+                for i in sorted(graph.neighbors(curr), key=lambda x:graph.get_edge_weight(curr, x) + heuristic(graph, x, goal)):
                     newCost = cost1_pre[curr] + graph.get_edge_weight(curr, i) 
-                    if i in explored2:
-                        return path1[curr] + path2[i][::-1]
                     if i not in cost1 or newCost + heuristic(graph, i, goal) < cost1[i]:
                         cost1_pre[i] = newCost
                         cost1[i] = newCost + heuristic(graph, i, goal)
@@ -421,18 +434,23 @@ def bidirectional_a_star(graph, start, goal,
         else:
             curr = frontier2.pop()
             curr = curr[1]
+            if curr == start:
+                return path2[curr][::-1]
+
+            if curr in explored1: #terminating condition
+                return path1[curr][:-1] + path2[curr][::-1]
+
             if curr not in explored2:
                 explored2.add(curr) #add curr state to explored
 
                 for i in sorted(graph.neighbors(curr), key=lambda x:graph.get_edge_weight(curr, x)):
                     newCost = cost2_pre[curr] + graph.get_edge_weight(curr, i) 
-                    if i in explored1: #terminating condition
-                        return path1[i] + path2[curr][::-1]
                     if i not in cost2 or newCost + heuristic(graph, i, start) < cost2[i]:
                         cost2_pre[i] = newCost
                         cost2[i] = newCost + heuristic(graph, i, start)
                         path2[i] = path2[curr] + [i]
                         frontier2.append((cost2[i], i))
+    return None
 
 
 def tridirectional_search(graph, goals):
