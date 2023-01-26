@@ -333,47 +333,45 @@ def bidirectional_ucs(graph, start, goal):
     path2 = {goal: [goal]}
     cost1 = {start: 0} #dict to keep track of cost
     cost2 = {goal: 0}
+    maxBound = float('inf')
+    intersect = set()
     while frontier1 and frontier2:
-        if (frontier1.size() < frontier2.size()) or frontier1.size() == 1:
-            curr = frontier1.pop()
-            currCost = curr[0] 
-            curr = curr[1]
-            if curr == goal:
-                print("curr-goal")
-                return path1[curr]
+        #if (frontier1.size() < frontier2.size()) or frontier1.size() == 1:
+        curr = frontier1.pop()
+        currCost = curr[0] 
+        curr = curr[1]
 
-            if curr in explored2:
-                print("curr in explored2")
-                return path1[curr][:-1] + path2[curr][::-1]
+        if curr not in explored1:
+            explored1.add(curr) #add curr state to explored
+            for i in sorted(graph.neighbors(curr), key=lambda x:graph.get_edge_weight(curr, x)):
+                newCost = currCost + graph.get_edge_weight(curr, i)
+                if i in explored2:
+                    intersect.add((newCost + cost2[i], i))
+                    maxBound = min(maxBound, newCost + cost2[i])
+                if i not in cost1 or newCost < cost1[i]:
+                    cost1[i] = newCost
+                    path1[i] = path1[curr] + [i]
+                    frontier1.append((newCost, i))
+        #else:
+        curr = frontier2.pop()
+        currCost = curr[0] 
+        curr = curr[1]
+     
+        if curr not in explored2:
+            explored2.add(curr) #add curr state to explored
+            for i in sorted(graph.neighbors(curr), key=lambda x:graph.get_edge_weight(curr, x)):
+                newCost = currCost + graph.get_edge_weight(curr, i)
+                if i in explored1:
+                    intersect.add((newCost + cost1[i], i))
+                    maxBound = min(maxBound, newCost + cost1[i])
+                if i not in cost2 or newCost < cost2[i]:
+                    cost2[i] = newCost
+                    path2[i] = path2[curr] + [i]
+                    frontier2.append((newCost, i))
 
-            if curr not in explored1:
-                explored1.add(curr) #add curr state to explored
-                for i in sorted(graph.neighbors(curr), key=lambda x:graph.get_edge_weight(curr, x)):
-                    newCost = currCost + graph.get_edge_weight(curr, i) 
-                    if i not in cost1 or newCost < cost1[i]:
-                        cost1[i] = newCost
-                        path1[i] = path1[curr] + [i]
-                        frontier1.append((newCost, i))
-        else:
-            curr = frontier2.pop()
-            currCost = curr[0] 
-            curr = curr[1]
-            if curr == start:
-                print("curr-start")
-                return path2[curr][::-1]
-
-            if curr in explored1:
-                print("curr in explored1")
-                return path1[curr][:-1] + path2[curr][::-1]
-
-            if curr not in explored2:
-                explored2.add(curr) #add curr state to explored
-                for i in sorted(graph.neighbors(curr), key=lambda x:graph.get_edge_weight(curr, x)):
-                    newCost = currCost + graph.get_edge_weight(curr, i)
-                    if i not in cost2 or newCost < cost2[i]:
-                        cost2[i] = newCost
-                        path2[i] = path2[curr] + [i]
-                        frontier2.append((newCost, i))
+        if maxBound < frontier1.top()[0] + frontier2.top()[0]:
+            tmp = sorted(intersect)[0][1]
+            return path1[tmp][:-1] + path2[tmp][::-1]
     return None
 
 
@@ -415,8 +413,8 @@ def bidirectional_a_star(graph, start, goal,
         if (frontier1.size() < frontier2.size()) or frontier1.size() == 1:
             curr = frontier1.pop()
             curr = curr[1]
-            if curr == goal:
-                return path1[curr]
+            # if curr == goal:
+            #     return path1[curr]
 
             if curr in explored2:
                 return path1[curr][:-1] + path2[curr][::-1]
@@ -434,8 +432,8 @@ def bidirectional_a_star(graph, start, goal,
         else:
             curr = frontier2.pop()
             curr = curr[1]
-            if curr == start:
-                return path2[curr][::-1]
+            # if curr == start:
+            #     return path2[curr][::-1]
 
             if curr in explored1: #terminating condition
                 return path1[curr][:-1] + path2[curr][::-1]
