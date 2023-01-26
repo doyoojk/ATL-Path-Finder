@@ -436,7 +436,7 @@ def bidirectional_a_star(graph, start, goal,
         curr = frontier2.pop()
         curr = curr[1]
     
-        if heuristic == euclidean_dist_heuristic:
+        if heuristic != null_heuristic:
             if curr in explored1: #terminating condition
                 intersect.add((cost2_pre[curr] + cost1[curr], curr))
                 maxBound = min(maxBound, cost2_pre[curr] + cost1[curr])
