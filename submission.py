@@ -336,7 +336,6 @@ def bidirectional_ucs(graph, start, goal):
     maxBound = float('inf')
     intersect = set()
     while frontier1 and frontier2:
-        #if (frontier1.size() < frontier2.size()) or frontier1.size() == 1:
         curr = frontier1.pop()
         currCost = curr[0] 
         curr = curr[1]
@@ -352,7 +351,6 @@ def bidirectional_ucs(graph, start, goal):
                     cost1[i] = newCost
                     path1[i] = path1[curr] + [i]
                     frontier1.append((newCost, i))
-        #else:
         curr = frontier2.pop()
         currCost = curr[0] 
         curr = curr[1]
@@ -409,45 +407,58 @@ def bidirectional_a_star(graph, start, goal,
     cost2 = {goal: 0}
     cost1_pre = {start: 0} #dict to keep track of cost before adding heuristic
     cost2_pre = {goal: 0}
+    intersect = set()
+    maxBound = float('inf')
     while frontier1 and frontier2:
-        if (frontier1.size() < frontier2.size()) or frontier1.size() == 1:
-            curr = frontier1.pop()
-            curr = curr[1]
-            # if curr == goal:
-            #     return path1[curr]
+        curr = frontier1.pop()
+        curr = curr[1]
 
+        if heuristic == euclidean_dist_heuristic:
             if curr in explored2:
-                return path1[curr][:-1] + path2[curr][::-1]
+                intersect.add((cost1_pre[curr] + cost2[curr], curr))
+                maxBound = min(maxBound, cost1_pre[curr] + cost2[curr])
 
-            if curr not in explored1:
-                explored1.add(curr) #add curr state to explored
+        if curr not in explored1:
+            explored1.add(curr) #add curr state to explored
 
-                for i in sorted(graph.neighbors(curr), key=lambda x:graph.get_edge_weight(curr, x) + heuristic(graph, x, goal)):
-                    newCost = cost1_pre[curr] + graph.get_edge_weight(curr, i) 
-                    if i not in cost1 or newCost + heuristic(graph, i, goal) < cost1[i]:
-                        cost1_pre[i] = newCost
-                        cost1[i] = newCost + heuristic(graph, i, goal)
-                        path1[i] = path1[curr] + [i]
-                        frontier1.append((cost1[i], i))
-        else:
-            curr = frontier2.pop()
-            curr = curr[1]
-            # if curr == start:
-            #     return path2[curr][::-1]
-
+            for i in sorted(graph.neighbors(curr), key=lambda x:graph.get_edge_weight(curr, x) + heuristic(graph, x, goal)):
+                newCost = cost1_pre[curr] + graph.get_edge_weight(curr, i) 
+                if heuristic == null_heuristic:
+                    if i in explored2:
+                        intersect.add((newCost + cost2[i], i))
+                        maxBound = min(maxBound, newCost + cost2[i])
+                if i not in cost1 or newCost + heuristic(graph, i, goal) < cost1[i]:
+                    cost1_pre[i] = newCost
+                    cost1[i] = newCost + heuristic(graph, i, goal)
+                    path1[i] = path1[curr] + [i]
+                    frontier1.append((cost1[i], i))
+     
+        curr = frontier2.pop()
+        curr = curr[1]
+    
+        if heuristic == euclidean_dist_heuristic:
             if curr in explored1: #terminating condition
-                return path1[curr][:-1] + path2[curr][::-1]
+                intersect.add((cost2_pre[curr] + cost1[curr], curr))
+                maxBound = min(maxBound, cost2_pre[curr] + cost1[curr])
 
-            if curr not in explored2:
-                explored2.add(curr) #add curr state to explored
+        if curr not in explored2:
+            explored2.add(curr) #add curr state to explored
 
-                for i in sorted(graph.neighbors(curr), key=lambda x:graph.get_edge_weight(curr, x)):
-                    newCost = cost2_pre[curr] + graph.get_edge_weight(curr, i) 
-                    if i not in cost2 or newCost + heuristic(graph, i, start) < cost2[i]:
-                        cost2_pre[i] = newCost
-                        cost2[i] = newCost + heuristic(graph, i, start)
-                        path2[i] = path2[curr] + [i]
-                        frontier2.append((cost2[i], i))
+            for i in sorted(graph.neighbors(curr), key=lambda x:graph.get_edge_weight(curr, x)):
+                newCost = cost2_pre[curr] + graph.get_edge_weight(curr, i) 
+                if heuristic == null_heuristic:
+                    if i in explored1:
+                        intersect.add((newCost + cost1[i], i))
+                        maxBound = min(maxBound, newCost + cost1[i])
+                if i not in cost2 or newCost + heuristic(graph, i, start) < cost2[i]:
+                    cost2_pre[i] = newCost
+                    cost2[i] = newCost + heuristic(graph, i, start)
+                    path2[i] = path2[curr] + [i]
+                    frontier2.append((cost2[i], i))
+
+        if maxBound < frontier1.top()[0] + frontier2.top()[0]:
+            tmp = sorted(intersect)[0][1]
+            return path1[tmp][:-1] + path2[tmp][::-1]
     return None
 
 
